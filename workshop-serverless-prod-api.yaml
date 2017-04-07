@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS Serverless Specification template describing your function.
+Resources:
+  ServerlessCommanderInCharge:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_enter_firing_code'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_enter_firing_code.lambda_handler
+      MemorySize: 128
+      Runtime: python2.7
+      Timeout: 30
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /enter_firing_code
+            Method: ANY
