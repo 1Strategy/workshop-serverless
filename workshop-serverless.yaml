@@ -87,6 +87,19 @@ Resources:
       Runtime: python2.7
       Timeout: 30
 
+    ServerlessGetFiringCode:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: 'serverless_get_firing_code'
+        CodeUri: .
+        Description: ''
+        Handler: serverless_get_firing_code.lambda_handler
+        MemorySize: 128
+        Policies:
+        - AWSStepFunctionsFullAccess
+        Runtime: python2.7
+        Timeout: 30
+
   ServerlessNotification:
     Type: AWS::Serverless::Function
     Properties:
@@ -95,6 +108,8 @@ Resources:
       Description: ''
       Handler: serverless_notification.lambda_handler
       MemorySize: 128
+      Policies:
+        - AmazonSNSFullAccess
       Runtime: python2.7
       Timeout: 30
 
@@ -125,11 +140,11 @@ Resources:
   ServerlessSQSQueue:
     Type: "AWS::SQS::Queue"
     Properties:
-      DelaySeconds: 0      
+      DelaySeconds: 0
       MessageRetentionPeriod: 300
       QueueName: serverless-workshop-queue
       ReceiveMessageWaitTimeSeconds: 0
-      VisibilityTimeout: 30
+      VisibilityTimeout: 5
 
   StateMachineActity:
     Type: "AWS::StepFunctions::Activity"
