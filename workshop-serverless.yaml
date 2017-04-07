@@ -1,0 +1,367 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS Serverless Specification template describing your function.
+Parameters:
+  SNSEmail:
+    Type: String
+    Default: email@domain.com
+    Description: The email where SNS notifications will be sent
+
+Resources:
+  ServerlessDynamoDB:
+    Type: AWS::Serverless::SimpleTable
+    PrimaryKey:
+      Name: id
+      Type: String
+    ProvisionedThroughput:
+      ReadCapacityUnits: 5
+      WriteCapacityUnits: 5
+    TableName: Galaxy
+
+  ServerlessCommanderInCharge:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_commander_in_charge'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_commander_in_charge.lambda_handler
+      MemorySize: 128
+      Runtime: python2.7
+      Timeout: 30
+      Environment:
+        Variables:
+          sns_arn: !GetAtt ServerlessSNSTopic.arn
+          activity_arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
+          sqs_name: !GetAtt ServerlessSQSQueue.QueueName
+
+  ServerlessChargeCannons:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_charge_cannon'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_charge_cannon.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessEnteringFireCode:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_enter_firing_code'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_charge_cannon.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessIssueOrders:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_issue_orders'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_issue_orders.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessMergeParallel:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_merge_parallel'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_merge_parallel.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessNotification:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_notification'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_notification.lambda_handler
+      MemorySize: 128
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessTargetingComputer:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_targeting_computer'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_targeting_computer.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
+
+  ServerlessSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: serverless
+      Subscription:
+        -
+          Endpoint:
+            Ref: SNSEmail
+          Protocol: "email"
+      TopicName: serverless-workshop-topic
+
+  ServerlessSQSQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      DelaySeconds: 0
+      FifoQueue: False
+      MessageRetentionPeriod: 1
+      QueueName: serverless-workshop-queue
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 30
+
+  StateMachineActity:
+    Type: "AWS::StepFunctions::Activity"
+    Properties:
+      Name: serverless_issue_fire_command
+
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/service-role/StatesExecutionRole-${AWS::Region}
+      DefinitionString: !Sub |-
+        {
+           "Comment":"1Strategy Serverless Architectures Lab",
+           "StartAt":"DemonstratePower",
+           "States":{
+              "DemonstratePower":{
+                "Type":"Task",
+                "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_commander_in_charge",
+                "Next":"SelectTarget"
+              },
+              "SelectTarget":{
+                 "Type":"Task",
+                 "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_targeting_computer",
+                 "Next":"Travel"
+              },
+              "Travel":{
+                 "Type":"Choice",
+                 "Choices":[
+                    {
+                       "Variable":"$.travel_distance",
+                       "NumericGreaterThanEquals":100,
+                       "Next":"HyperSpaceJump"
+                    },
+                    {
+                       "Variable":"$.travel_distance",
+                       "NumericLessThan":100,
+                       "Next":"SublightTravel"
+                    }
+                 ]
+              },
+              "HyperSpaceJump":{
+                 "Type":"Wait",
+                 "Seconds":5,
+                 "Next":"IssueChargeCommands"
+              },
+              "SublightTravel":{
+                 "Type":"Wait",
+                 "Seconds":1,
+                 "Next":"IssueChargeCommands"
+              },
+              "IssueChargeCommands":{
+                  "Type":"Task",
+                  "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_issue_orders",
+                  "Next":"ChargeCannons"
+              },
+              "ChargeCannons":{
+                 "Type":"Parallel",
+                 "Next":"MergeOutput",
+                 "Branches":[
+                    {
+                       "StartAt":"ChargeCannon1",
+                       "States":{
+                          "ChargeCannon1":{
+                             "Type":"Pass",
+                             "Result":"1",
+                             "ResultPath":"$.cannon_identifier",
+                             "Next":"ChargeCannon1Task"
+                          },
+                          "ChargeCannon1Task":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon",
+                             "Retry":[
+                                {
+                                   "ErrorEquals":[
+                                      "States.ALL"
+                                   ],
+                                   "IntervalSeconds":10,
+                                   "MaxAttempts":3,
+                                   "BackoffRate":1.5
+                                }
+                             ],
+                             "End":true
+                          }
+                       }
+                    },
+                    {
+                       "StartAt":"ChargeCannon2",
+                       "States":{
+                          "ChargeCannon2":{
+                             "Type":"Pass",
+                             "Result":"2",
+                             "ResultPath":"$.cannon_identifier",
+                             "Next":"ChargeCannon2Task"
+                          },
+                          "ChargeCannon2Task":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon",
+                             "Retry":[
+                                {
+                                   "ErrorEquals":[
+                                      "States.ALL"
+                                   ],
+                                   "IntervalSeconds":10,
+                                   "MaxAttempts":3,
+                                   "BackoffRate":1.5
+                                }
+                             ],
+                             "End":true
+                          }
+                       }
+                    },
+                    {
+                       "StartAt":"ChargeCannon3",
+                       "States":{
+                          "ChargeCannon3":{
+                             "Type":"Pass",
+                             "Result":"3",
+                             "ResultPath":"$.cannon_identifier",
+                             "Next":"ChargeCannon3Task"
+                          },
+                          "ChargeCannon3Task":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon",
+                             "Retry":[
+                                {
+                                   "ErrorEquals":[
+                                      "States.ALL"
+                                   ],
+                                   "IntervalSeconds":10,
+                                   "MaxAttempts":3,
+                                   "BackoffRate":1.5
+                                }
+                             ],
+                             "End":true
+                          }
+                       }
+                    },
+                    {
+                       "StartAt":"InformationPassThrough",
+                       "States":{
+                          "InformationPassThrough":{
+                             "Type":"Pass",
+                             "End":true
+                          }
+                       }
+                    }
+                 ]
+              },
+              "MergeOutput":{
+                 "Type":"Task",
+                 "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_merge_parallel",
+                 "Next":"PromptForFireCommand"
+              },
+              "PromptForFireCommand":{
+                 "Type":"Parallel",
+                 "Next":"MergeOutputStep",
+                 "Branches":[
+                    {
+                       "StartAt":"IssueFireCommand",
+                       "States":{
+                          "IssueFireCommand":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command",
+                             "TimeoutSeconds":120,
+                             "Catch": [{
+                                "ErrorEquals": [ "States.TaskFailed", "States.Timeout" ],
+                                "Next": "Hesitation"
+                                }],
+                             "Next":"PlanetDestroyed"
+                          },
+                          "PlanetDestroyed":{
+                            "Type":"Pass",
+                            "Result":"congratulations, you are now the ultimate power in the universe.",
+                            "ResultPath":"$.message",
+                            "End":true
+                          },
+                          "Hesitation":{
+                            "Type":"Pass",
+                            "Result":"Your cowardly hesitation will be relayed to Lord Vader.",
+                            "ResultPath":"$.message",
+                            "End":true
+
+                          }
+                       }
+                    },
+                    {
+                       "StartAt":"WaitForCode",
+                       "States":{
+                          "WaitForCode":{
+                             "Type":"Wait",
+                             "Seconds":3,
+                             "Next":"GenerateCode"
+                          },
+                          "GenerateCode":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_get_firing_code",
+                             "Next":"JSONXform"
+                          },
+                          "JSONXform":{
+                             "Type":"Pass",
+                             "InputPath":"$.firing_code",
+                             "ResultPath":"$.message",
+                             "Next":"SendCode"
+                          },
+                          "SendCode":{
+                             "Type":"Task",
+                             "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_notification",
+                             "End":true
+                          }
+                       }
+                    },
+                    {
+                       "StartAt":"InformationPassThrough1",
+                       "States":{
+                          "InformationPassThrough1":{
+                             "Type":"Pass",
+                             "End":true
+                          }
+                       }
+                    }
+                 ]
+              },
+              "MergeOutputStep":{
+                "Type":"Task",
+                "Next":"Report",
+                "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_merge_parallel"
+              },
+              "Report":{
+                 "Type":"Task",
+                 "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_notification",
+                 "End":true
+              }
+           }
+        }
