@@ -29,20 +29,28 @@ galaxy = dynamodb.Table('Galaxy')
 systemList = (11, 93, 99, 57, 92, 9, 86, 50, 29, 31, 71, 13, 56, 17, 45, 72,
               19, 23, 49, 64)
 
+
 def lambda_handler(event, context):
-    """Handler function that Lambda will execute
-    """
+
+    """Handler function that Lambda will execute"""
     choice = random.randint(0, len(systemList)-1)
     planet = systemList[choice]
-    response = galaxy.query(
-        ExpressionAttributeNames={'#nm': 'planetName',
-                                  '#rgn': 'region'},
-        ProjectionExpression='#nm, #rgn',
-        KeyConditionExpression=Key('planetID').eq(planet),)
+
+    try:
+        response = galaxy.query(
+            ExpressionAttributeNames={'#nm': 'planetName',
+                                      '#rgn': 'region'},
+            ProjectionExpression='#nm, #rgn',
+            KeyConditionExpression=Key('planetID').eq(planet),)
+    except Exception as e:
+        print("{}".format(e))
+        event['travel_distance'] = random.randint(99, 101)
+        return event
+
     target = response['Items'][0]
     event['planet_name'] = target['planetName']
     if target['region'] in ['Unknown', 'Outer Rim', 'Mid Rim']:
-        event['travel_distance'] = random.randint(100,10000)
+        event['travel_distance'] = random.randint(100, 10000)
     else:
-        event['travel_distance'] = random.randint(1,99)
+        event['travel_distance'] = random.randint(1, 99)
     return(event)
