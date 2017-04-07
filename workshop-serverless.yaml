@@ -30,7 +30,7 @@ Resources:
       Timeout: 30
       Environment:
         Variables:
-          sns_arn: !GetAtt ServerlessSNSTopic.arn
+          sns_arn: !Ref ServerlessSNSTopic
           activity_arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
           sqs_name: !GetAtt ServerlessSQSQueue.QueueName
 
@@ -125,9 +125,8 @@ Resources:
   ServerlessSQSQueue:
     Type: "AWS::SQS::Queue"
     Properties:
-      DelaySeconds: 0
-      FifoQueue: False
-      MessageRetentionPeriod: 1
+      DelaySeconds: 0      
+      MessageRetentionPeriod: 300
       QueueName: serverless-workshop-queue
       ReceiveMessageWaitTimeSeconds: 0
       VisibilityTimeout: 30
