@@ -53,6 +53,3 @@ def lambda_handler(event, context):
         event['travel_distance'] = random.randint(1, 99)
     print(event)
     return(event)
-
-
-lambda_handler({'dynamodb_table':'potato'},{})
