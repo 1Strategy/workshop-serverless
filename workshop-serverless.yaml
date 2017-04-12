@@ -34,7 +34,7 @@ Resources:
           sqs_name: !GetAtt ServerlessSQSQueue.QueueName
           dynamodb_table: !Ref ServerlessDynamoDB
 
-  ServerlessEnteringFireCode:
+  ServerlessScanForTargets:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: 'serverless_scan_for_targets'
@@ -335,14 +335,14 @@ Resources:
                           },
                           "PlanetDestroyed":{
                             "Type":"Pass",
-                            "Result":"congratulations, you are now the ultimate power in the universe.",
-                            "ResultPath":"$.message",
+                            "Result":"planet_destroyed",
+                            "ResultPath":"$.message.message_context",
                             "End":true
                           },
                           "Hesitation":{
                             "Type":"Pass",
-                            "Result":"Your cowardly hesitation will be relayed to Lord Vader.",
-                            "ResultPath":"$.message",
+                            "Result":"hesitation",
+                            "ResultPath":"$.message.message_context",
                             "End":true
 
                           }

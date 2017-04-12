@@ -27,7 +27,7 @@ def lambda_handler(event, context):
                         'S': planet['region']
                      }
             })
-
+    return event
 
 def get_targets():
     return [{
