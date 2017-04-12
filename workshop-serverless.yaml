@@ -16,7 +16,6 @@ Resources:
     ProvisionedThroughput:
       ReadCapacityUnits: 5
       WriteCapacityUnits: 5
-    TableName: Galaxy
 
   ServerlessCommanderInCharge:
     Type: AWS::Serverless::Function
@@ -33,7 +32,7 @@ Resources:
           sns_arn: !Ref ServerlessSNSTopic
           activity_arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
           sqs_name: !GetAtt ServerlessSQSQueue.QueueName
-          dynamodb_table: ''
+          dynamodb_table: !Ref ServerlessDynamoDB
 
   ServerlessEnteringFireCode:
     Type: AWS::Serverless::Function
@@ -177,6 +176,11 @@ Resources:
               "DemonstratePower":{
                 "Type":"Task",
                 "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_commander_in_charge",
+                "Next":"ScanForTargets"
+              },
+              "ScanForTargets":{
+                "Type":"Task",
+                "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_scan_for_targets",
                 "Next":"SelectTarget"
               },
               "SelectTarget":{
