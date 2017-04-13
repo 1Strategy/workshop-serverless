@@ -159,16 +159,15 @@
                   },
                   "PlanetDestroyed":{
                     "Type":"Pass",
-                    "Result":"congratulations, you are now the ultimate power in the universe.",
-                    "ResultPath":"$.message",
+                    "Result":"planet_destroyed",
+                    "ResultPath":"$.message.message_context",
                     "End":true
                   },
                   "Hesitation":{
                     "Type":"Pass",
-                    "Result":"Your cowardly hesitation will be relayed to Lord Vader.",
-                    "ResultPath":"$.message",
+                    "Result":"hesistation",
+                    "ResultPath":"$.message.message_context",
                     "End":true
-
                   }
                }
             },
@@ -188,7 +187,7 @@
                   "JSONXform":{
                      "Type":"Pass",
                      "InputPath":"$.firing_code",
-                     "ResultPath":"$.message",
+                     "ResultPath":"$.message.firing_code",
                      "Next":"SendCode"
                   },
                   "SendCode":{

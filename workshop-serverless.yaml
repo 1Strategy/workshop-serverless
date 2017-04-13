@@ -16,7 +16,6 @@ Resources:
     ProvisionedThroughput:
       ReadCapacityUnits: 5
       WriteCapacityUnits: 5
-    TableName: Galaxy
 
   ServerlessCommanderInCharge:
     Type: AWS::Serverless::Function
@@ -33,6 +32,20 @@ Resources:
           sns_arn: !Ref ServerlessSNSTopic
           activity_arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
           sqs_name: !GetAtt ServerlessSQSQueue.QueueName
+          dynamodb_table: !Ref ServerlessDynamoDB
+
+  ServerlessScanForTargets:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: 'serverless_scan_for_targets'
+      CodeUri: .
+      Description: ''
+      Handler: serverless_scan_for_targets.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
 
   ServerlessChargeCannons:
     Type: AWS::Serverless::Function
@@ -163,6 +176,11 @@ Resources:
               "DemonstratePower":{
                 "Type":"Task",
                 "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_commander_in_charge",
+                "Next":"ScanForTargets"
+              },
+              "ScanForTargets":{
+                "Type":"Task",
+                "Resource":"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_scan_for_targets",
                 "Next":"SelectTarget"
               },
               "SelectTarget":{
@@ -317,14 +335,14 @@ Resources:
                           },
                           "PlanetDestroyed":{
                             "Type":"Pass",
-                            "Result":"congratulations, you are now the ultimate power in the universe.",
-                            "ResultPath":"$.message",
+                            "Result":"planet_destroyed",
+                            "ResultPath":"$.message.message_context",
                             "End":true
                           },
                           "Hesitation":{
                             "Type":"Pass",
-                            "Result":"Your cowardly hesitation will be relayed to Lord Vader.",
-                            "ResultPath":"$.message",
+                            "Result":"hesitation",
+                            "ResultPath":"$.message.message_context",
                             "End":true
 
                           }
