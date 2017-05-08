@@ -4,7 +4,12 @@
    "States":{
       "DemonstratePower":{
         "Type":"Task",
-        "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_commander_in_charge",
+        "Resource":"<REPLACE ME>",
+        "Next":"ScanForTargets"
+      },
+      "ScanForTargets":{
+        "Type":"Task",
+        "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_scan_for_targets",
         "Next":"SelectTarget"
       },
       "SelectTarget":{
@@ -149,7 +154,7 @@
                "States":{
                   "IssueFireCommand":{
                      "Type":"Task",
-                     "Resource":"arn:aws:states:us-west-2:281782457076:activity:serverless_issue_fire_command",
+                     "Resource":"<REPLACE ME>",
                      "TimeoutSeconds":120,
                      "Catch": [{
                         "ErrorEquals": [ "States.TaskFailed", "States.Timeout" ],
@@ -165,9 +170,10 @@
                   },
                   "Hesitation":{
                     "Type":"Pass",
-                    "Result":"hesistation",
+                    "Result":"hesitation",
                     "ResultPath":"$.message.message_context",
                     "End":true
+
                   }
                }
             },
@@ -187,7 +193,7 @@
                   "JSONXform":{
                      "Type":"Pass",
                      "InputPath":"$.firing_code",
-                     "ResultPath":"$.message.firing_code",
+                     "ResultPath":"$.message",
                      "Next":"SendCode"
                   },
                   "SendCode":{
