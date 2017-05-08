@@ -164,6 +164,32 @@ Resources:
     Properties:
       Name: serverless_issue_fire_command
 
+  ApiGatewayStepFunctionsRole:
+  Type: "AWS::IAM::Role"
+  Properties:
+    RoleName: "serverless_api_gateway_step_functions"
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        -
+          Effect: "Allow"
+          Principal:
+            Service:
+              - "apigateway.amazonaws.com"
+          Action:
+            - "sts:AssumeRole"
+    Path: "/"
+    Policies:
+      -
+        PolicyName: "serverless_api_gateway_step_functions_policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Action: "states:*"
+              Resource: "*"
+
   StateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
