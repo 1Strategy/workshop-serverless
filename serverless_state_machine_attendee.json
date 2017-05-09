@@ -9,12 +9,12 @@
       },
       "ScanForTargets":{
         "Type":"Task",
-        "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_scan_for_targets",
+        "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_scan_for_targets",
         "Next":"SelectTarget"
       },
       "SelectTarget":{
          "Type":"Task",
-         "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_targeting_computer",
+         "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_targeting_computer",
          "Next":"Travel"
       },
       "Travel":{
@@ -44,7 +44,7 @@
       },
       "IssueChargeCommands":{
           "Type":"Task",
-          "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_issue_orders",
+          "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_issue_orders",
           "Next":"ChargeCannons"
       },
       "ChargeCannons":{
@@ -62,7 +62,7 @@
                   },
                   "ChargeCannon1Task":{
                      "Type":"Task",
-                     "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_charge_cannon",
+                     "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_charge_cannon",
                      "Retry":[
                         {
                            "ErrorEquals":[
@@ -88,7 +88,7 @@
                   },
                   "ChargeCannon2Task":{
                      "Type":"Task",
-                     "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_charge_cannon",
+                     "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_charge_cannon",
                      "Retry":[
                         {
                            "ErrorEquals":[
@@ -114,7 +114,7 @@
                   },
                   "ChargeCannon3Task":{
                      "Type":"Task",
-                     "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_charge_cannon",
+                     "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_charge_cannon",
                      "Retry":[
                         {
                            "ErrorEquals":[
@@ -142,7 +142,7 @@
       },
       "MergeOutput":{
          "Type":"Task",
-         "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_merge_parallel",
+         "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_merge_parallel",
          "Next":"PromptForFireCommand"
       },
       "PromptForFireCommand":{
@@ -187,7 +187,7 @@
                   },
                   "GenerateCode":{
                      "Type":"Task",
-                     "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_get_firing_code",
+                     "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_get_firing_code",
                      "Next":"JSONXform"
                   },
                   "JSONXform":{
@@ -198,7 +198,7 @@
                   },
                   "SendCode":{
                      "Type":"Task",
-                     "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_notification",
+                     "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_notification",
                      "End":true
                   }
                }
@@ -217,11 +217,11 @@
       "MergeOutputStep":{
         "Type":"Task",
         "Next":"Report",
-        "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_merge_parallel"
+        "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_merge_parallel"
       },
       "Report":{
          "Type":"Task",
-         "Resource":"arn:aws:lambda:us-west-2:842337631775:function:serverless_notification",
+         "Resource":"arn:aws:lambda:us-west-2:281782457076:function:serverless_notification",
          "End":true
       }
    }
