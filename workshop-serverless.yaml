@@ -31,16 +31,16 @@ Resources:
         Variables:
           sns_arn: !Ref ServerlessSNSTopic
           activity_arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
-          sqs_name: !Att ServerlessSQSQueue.QueueName
+          sqs_name: !GetAtt ServerlessSQSQueue.QueueName
           dynamodb_table: !Ref ServerlessDynamoDB
 
-  ServerlessScanForTars:
+  ServerlessScanForTargets:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: 'serverless_scan_for_tars'
+      FunctionName: 'serverless_scan_for_targets'
       CodeUri: .
       Description: ''
-      Handler: serverless_scan_for_tars.lambda_handler
+      Handler: serverless_scan_for_targets.lambda_handler
       MemorySize: 128
       Policies:
       - AmazonDynamoDBFullAccess

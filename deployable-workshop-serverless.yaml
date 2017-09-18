@@ -1,0 +1,294 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: An AWS Serverless Specification template describing your function.
+Parameters:
+  SNSEmail:
+    Default: email@domain.com
+    Description: The email where SNS notifications will be sent
+    Type: String
+Resources:
+  ApiGatewayStepFunctionsRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: states:*
+            Effect: Allow
+            Resource: '*'
+          Version: '2012-10-17'
+        PolicyName: serverless_api_gateway_step_functions_policy
+      RoleName: serverless_api_gateway_step_functions
+    Type: AWS::IAM::Role
+  ServerlessChargeCannons:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_charge_cannon
+      Handler: serverless_charge_cannon.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessCommanderInCharge:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      Environment:
+        Variables:
+          activity_arn:
+            Fn::Sub: arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command
+          dynamodb_table:
+            Ref: ServerlessDynamoDB
+          sns_arn:
+            Ref: ServerlessSNSTopic
+          sqs_name:
+            Fn::GetAtt:
+            - ServerlessSQSQueue
+            - QueueName
+      FunctionName: serverless_commander_in_charge
+      Handler: serverless_commander_in_charge.lambda_handler
+      MemorySize: 128
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessDynamoDB:
+    PrimaryKey:
+      Name: id
+      Type: String
+    ProvisionedThroughput:
+      ReadCapacityUnits: 5
+      WriteCapacityUnits: 5
+    Type: AWS::Serverless::SimpleTable
+  ServerlessEnteringFireCode:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_enter_firing_code
+      Handler: serverless_charge_cannon.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessGetFiringCode:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_get_firing_code
+      Handler: serverless_get_firing_code.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AWSStepFunctionsFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessIssueOrders:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_issue_orders
+      Handler: serverless_issue_orders.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessMergeParallel:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_merge_parallel
+      Handler: serverless_merge_parallel.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSQSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessNotification:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_notification
+      Handler: serverless_notification.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonSNSFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessSNSTopic:
+    Properties:
+      DisplayName: serverless
+      Subscription:
+      - Endpoint:
+          Ref: SNSEmail
+        Protocol: email
+      TopicName: serverless-workshop-topic
+    Type: AWS::SNS::Topic
+  ServerlessSQSQueue:
+    Properties:
+      DelaySeconds: 0
+      MessageRetentionPeriod: 300
+      QueueName: serverless-workshop-queue
+      ReceiveMessageWaitTimeSeconds: 0
+      VisibilityTimeout: 5
+    Type: AWS::SQS::Queue
+  ServerlessScanForTargets:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_scan_for_targets
+      Handler: serverless_scan_for_targets.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  ServerlessTargetingComputer:
+    Properties:
+      CodeUri: s3://1strategy-training/c8370fe9325779d23c8aea4c660ad32a
+      Description: ''
+      FunctionName: serverless_targeting_computer
+      Handler: serverless_targeting_computer.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonDynamoDBFullAccess
+      Runtime: python2.7
+      Timeout: 30
+    Type: AWS::Serverless::Function
+  StateMachine:
+    Properties:
+      DefinitionString:
+        Fn::Sub: "{\n   \"Comment\":\"1Strategy Serverless Architectures Lab\",\n\
+          \   \"StartAt\":\"DemonstratePower\",\n   \"States\":{\n      \"DemonstratePower\"\
+          :{\n        \"Type\":\"Task\",\n        \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_commander_in_charge\"\
+          ,\n        \"Next\":\"ScanForTargets\"\n      },\n      \"ScanForTargets\"\
+          :{\n        \"Type\":\"Task\",\n        \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_scan_for_targets\"\
+          ,\n        \"Next\":\"SelectTarget\"\n      },\n      \"SelectTarget\":{\n\
+          \         \"Type\":\"Task\",\n         \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_targeting_computer\"\
+          ,\n         \"Next\":\"Travel\"\n      },\n      \"Travel\":{\n        \
+          \ \"Type\":\"Choice\",\n         \"Choices\":[\n            {\n        \
+          \       \"Variable\":\"$.travel_distance\",\n               \"NumericGreaterThanEquals\"\
+          :100,\n               \"Next\":\"HyperSpaceJump\"\n            },\n    \
+          \        {\n               \"Variable\":\"$.travel_distance\",\n       \
+          \        \"NumericLessThan\":100,\n               \"Next\":\"SublightTravel\"\
+          \n            }\n         ]\n      },\n      \"HyperSpaceJump\":{\n    \
+          \     \"Type\":\"Wait\",\n         \"Seconds\":5,\n         \"Next\":\"\
+          IssueChargeCommands\"\n      },\n      \"SublightTravel\":{\n         \"\
+          Type\":\"Wait\",\n         \"Seconds\":1,\n         \"Next\":\"IssueChargeCommands\"\
+          \n      },\n      \"IssueChargeCommands\":{\n          \"Type\":\"Task\"\
+          ,\n          \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_issue_orders\"\
+          ,\n          \"Next\":\"ChargeCannons\"\n      },\n      \"ChargeCannons\"\
+          :{\n         \"Type\":\"Parallel\",\n         \"Next\":\"MergeOutput\",\n\
+          \         \"Branches\":[\n            {\n               \"StartAt\":\"ChargeCannon1\"\
+          ,\n               \"States\":{\n                  \"ChargeCannon1\":{\n\
+          \                     \"Type\":\"Pass\",\n                     \"Result\"\
+          :\"1\",\n                     \"ResultPath\":\"$.cannon_identifier\",\n\
+          \                     \"Next\":\"ChargeCannon1Task\"\n                 \
+          \ },\n                  \"ChargeCannon1Task\":{\n                     \"\
+          Type\":\"Task\",\n                     \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon\"\
+          ,\n                     \"Retry\":[\n                        {\n       \
+          \                    \"ErrorEquals\":[\n                              \"\
+          States.ALL\"\n                           ],\n                          \
+          \ \"IntervalSeconds\":10,\n                           \"MaxAttempts\":3,\n\
+          \                           \"BackoffRate\":1.5\n                      \
+          \  }\n                     ],\n                     \"End\":true\n     \
+          \             }\n               }\n            },\n            {\n     \
+          \          \"StartAt\":\"ChargeCannon2\",\n               \"States\":{\n\
+          \                  \"ChargeCannon2\":{\n                     \"Type\":\"\
+          Pass\",\n                     \"Result\":\"2\",\n                     \"\
+          ResultPath\":\"$.cannon_identifier\",\n                     \"Next\":\"\
+          ChargeCannon2Task\"\n                  },\n                  \"ChargeCannon2Task\"\
+          :{\n                     \"Type\":\"Task\",\n                     \"Resource\"\
+          :\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon\"\
+          ,\n                     \"Retry\":[\n                        {\n       \
+          \                    \"ErrorEquals\":[\n                              \"\
+          States.ALL\"\n                           ],\n                          \
+          \ \"IntervalSeconds\":10,\n                           \"MaxAttempts\":3,\n\
+          \                           \"BackoffRate\":1.5\n                      \
+          \  }\n                     ],\n                     \"End\":true\n     \
+          \             }\n               }\n            },\n            {\n     \
+          \          \"StartAt\":\"ChargeCannon3\",\n               \"States\":{\n\
+          \                  \"ChargeCannon3\":{\n                     \"Type\":\"\
+          Pass\",\n                     \"Result\":\"3\",\n                     \"\
+          ResultPath\":\"$.cannon_identifier\",\n                     \"Next\":\"\
+          ChargeCannon3Task\"\n                  },\n                  \"ChargeCannon3Task\"\
+          :{\n                     \"Type\":\"Task\",\n                     \"Resource\"\
+          :\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_charge_cannon\"\
+          ,\n                     \"Retry\":[\n                        {\n       \
+          \                    \"ErrorEquals\":[\n                              \"\
+          States.ALL\"\n                           ],\n                          \
+          \ \"IntervalSeconds\":10,\n                           \"MaxAttempts\":3,\n\
+          \                           \"BackoffRate\":1.5\n                      \
+          \  }\n                     ],\n                     \"End\":true\n     \
+          \             }\n               }\n            },\n            {\n     \
+          \          \"StartAt\":\"InformationPassThrough\",\n               \"States\"\
+          :{\n                  \"InformationPassThrough\":{\n                   \
+          \  \"Type\":\"Pass\",\n                     \"End\":true\n             \
+          \     }\n               }\n            }\n         ]\n      },\n      \"\
+          MergeOutput\":{\n         \"Type\":\"Task\",\n         \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_merge_parallel\"\
+          ,\n         \"Next\":\"PromptForFireCommand\"\n      },\n      \"PromptForFireCommand\"\
+          :{\n         \"Type\":\"Parallel\",\n         \"Next\":\"MergeOutputStep\"\
+          ,\n         \"Branches\":[\n            {\n               \"StartAt\":\"\
+          IssueFireCommand\",\n               \"States\":{\n                  \"IssueFireCommand\"\
+          :{\n                     \"Type\":\"Task\",\n                     \"Resource\"\
+          :\"arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:serverless_issue_fire_command\"\
+          ,\n                     \"TimeoutSeconds\":120,\n                     \"\
+          Catch\": [{\n                        \"ErrorEquals\": [ \"States.TaskFailed\"\
+          , \"States.Timeout\" ],\n                        \"Next\": \"Hesitation\"\
+          \n                        }],\n                     \"Next\":\"PlanetDestroyed\"\
+          \n                  },\n                  \"PlanetDestroyed\":{\n      \
+          \              \"Type\":\"Pass\",\n                    \"Result\":\"planet_destroyed\"\
+          ,\n                    \"ResultPath\":\"$.message.message_context\",\n \
+          \                   \"End\":true\n                  },\n               \
+          \   \"Hesitation\":{\n                    \"Type\":\"Pass\",\n         \
+          \           \"Result\":\"hesitation\",\n                    \"ResultPath\"\
+          :\"$.message.message_context\",\n                    \"End\":true\n\n  \
+          \                }\n               }\n            },\n            {\n  \
+          \             \"StartAt\":\"WaitForCode\",\n               \"States\":{\n\
+          \                  \"WaitForCode\":{\n                     \"Type\":\"Wait\"\
+          ,\n                     \"Seconds\":3,\n                     \"Next\":\"\
+          GenerateCode\"\n                  },\n                  \"GenerateCode\"\
+          :{\n                     \"Type\":\"Task\",\n                     \"Resource\"\
+          :\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_get_firing_code\"\
+          ,\n                     \"Next\":\"JSONXform\"\n                  },\n \
+          \                 \"JSONXform\":{\n                     \"Type\":\"Pass\"\
+          ,\n                     \"InputPath\":\"$.firing_code\",\n             \
+          \        \"ResultPath\":\"$.message\",\n                     \"Next\":\"\
+          SendCode\"\n                  },\n                  \"SendCode\":{\n   \
+          \                  \"Type\":\"Task\",\n                     \"Resource\"\
+          :\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_notification\"\
+          ,\n                     \"End\":true\n                  }\n            \
+          \   }\n            },\n            {\n               \"StartAt\":\"InformationPassThrough1\"\
+          ,\n               \"States\":{\n                  \"InformationPassThrough1\"\
+          :{\n                     \"Type\":\"Pass\",\n                     \"End\"\
+          :true\n                  }\n               }\n            }\n         ]\n\
+          \      },\n      \"MergeOutputStep\":{\n        \"Type\":\"Task\",\n   \
+          \     \"Next\":\"Report\",\n        \"Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_merge_parallel\"\
+          \n      },\n      \"Report\":{\n         \"Type\":\"Task\",\n         \"\
+          Resource\":\"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless_notification\"\
+          ,\n         \"End\":true\n      }\n   }\n}"
+      RoleArn:
+        Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/service-role/StatesExecutionRole-${AWS::Region}
+    Type: AWS::StepFunctions::StateMachine
+  StateMachineActity:
+    Properties:
+      Name: serverless_issue_fire_command
+    Type: AWS::StepFunctions::Activity
+Transform: AWS::Serverless-2016-10-31
