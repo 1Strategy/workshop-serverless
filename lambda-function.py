@@ -9,4 +9,4 @@ def lambda_handler(event, context):
   "rank":"<REPLACE ME>",
   "name":"<REPLACE ME>"
   }
-return event
+  return event
